@@ -1,5 +1,6 @@
 from src.models import AgentRequest, AgentResponse
 from src.agents import FixMyBugAgent
+from src.orchestrator.errors import NoMatchingAgentError
 
 AGENT_REGISTRY = {
     FixMyBugAgent.name: FixMyBugAgent,
@@ -15,6 +16,8 @@ async def dispatch(request: AgentRequest) -> AgentResponse:
         request (AgentRequest): The request containing the action and parameters.
     Returns:
         AgentResponse: The response from the agent after execution.
+    Raises:
+        NoMatchingAgentError: If no agent matches the request.
     """
     input_text = request.input.lower()
 
@@ -22,4 +25,4 @@ async def dispatch(request: AgentRequest) -> AgentResponse:
         agent = AGENT_REGISTRY["fix_my_bug"]
         return agent().run(request)
 
-    raise ValueError("No suitable agent found.")
+    raise NoMatchingAgentError(f"No suitable agent found for request: {request}")
