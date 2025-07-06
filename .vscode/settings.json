@@ -1,0 +1,7 @@
+{
+    // hide .venv folder
+    "files.exclude": {
+        "**/.venv": true,
+        "**/.venv/**": true
+    },
+}
