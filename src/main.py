@@ -27,3 +27,15 @@ async def agent_action(request: AgentRequest):
     except Exception as e:
         logger.exception("Unexpected error in /agent endpoint")
         return {"error": "An unexpected error occurred", "details": str(e)}, 500
+
+
+@app.get("/agents")
+async def list_agents():
+    """
+    List all available agents.
+    """
+    from src.agents.base import AgentMeta
+
+    agents = [agent for agent in AgentMeta.REGISTRY]
+    logger.info(f"Listing agents: {agents}")
+    return {f"{agent.name}": agent.__name__ for agent in agents}
