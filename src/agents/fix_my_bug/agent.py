@@ -1,5 +1,8 @@
 from src.agents.base import BaseAgent
-from src.models import AgentRequest, AgentResponse, AgentMetadata
+from src.agents.fix_my_bug.models import CodeFix
+from src.agents.fix_my_bug.prompts import BUGFIX_PROMPT
+from src.llm.client import LLMClient
+from src.models import AgentRequest, AgentResponse, LLMResponse
 
 
 class FixMyBugAgent(BaseAgent):
@@ -9,25 +12,37 @@ class FixMyBugAgent(BaseAgent):
 
     name: str = "fix_my_bug"
 
-    def run(self, request: AgentRequest) -> AgentResponse:
+    def __init__(self):
         """
-        Execute the agent on a bug-fixing task.
+        Initialise the FixMyBugAgent.
 
-        Returns a dict with:
-        - output (str): final output
-        - metadata (AgentMetadata): extra info like tokens used, tools called, etc
-        - steps (optional list[str]): explanation or trace of steps taken
+        Args:
+            llm_client (LLMClient): Optional LLM client for generating responses.
         """
-        # TODO: Implement logic
-        output = f"Fixed bug in code: {request.input}"
-        metadata = AgentMetadata(
-            agent_name=FixMyBugAgent.name,
-            tokens_used=0,
-            tools_called=[],
+        self.llm_client = LLMClient(model_name="gpt-4o-mini")
+
+    def run(self, request: AgentRequest) -> AgentResponse:
+        if not request.input:
+            raise ValueError("Input cannot be empty")
+
+        prompt = BUGFIX_PROMPT.format(input=request.input)
+
+        response: LLMResponse[CodeFix] = self.llm_client.call_with_schema(
+            prompt=prompt,
+            schema=CodeFix,
+            system="You are a bug-fixing agent that provides clear and concise solutions to coding issues.",
         )
-        steps = [
-            f"Received input: {request.input}",
-            "Processed input to fix bug",
-            f"Output generated: {output}",
-        ]
-        return AgentResponse(output=output, metadata=metadata, steps=steps)
+
+        response.metadata.agent_name = self.name
+
+        fixed = response.data.fixed_code
+        if not fixed:
+            raise ValueError("No fixed_code returned by the agent")
+
+        explanation = response.data.explanation
+
+        return AgentResponse(
+            output=fixed,
+            metadata=response.metadata,
+            steps=[explanation],
+        )
