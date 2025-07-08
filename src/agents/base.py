@@ -1,13 +1,29 @@
-from abc import ABC, abstractmethod
+from abc import ABC, ABCMeta, abstractmethod
 from typing import Any
 from src.models import AgentRequest, AgentResponse
 
 
-class BaseAgent(ABC):
+class AgentMeta(ABCMeta):
     """
-    Base class for all agents in Lamina.
+    Metaclass that auto-registers all concrete Agent subclasses.
     """
 
+    REGISTRY: list[type["BaseAgent"]] = []
+
+    def __new__(cls: type, name: str, bases: tuple, attrs: dict) -> type:
+        new_cls = super().__new__(cls, name, bases, attrs)
+        if not attrs.get("abstract", False) and name != "BaseAgent":
+            AgentMeta.REGISTRY.append(new_cls)
+        return new_cls
+
+
+class BaseAgent(ABC, metaclass=AgentMeta):
+    """
+    Base class for all agents in Lamina.
+    Automatically registered via AgentMeta.
+    """
+
+    abstract = True
     name: str = "base"
 
     def __init__(self, llm_client: Any = None):
