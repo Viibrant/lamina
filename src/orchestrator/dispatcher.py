@@ -1,5 +1,7 @@
-from src.models import AgentRequest, AgentResponse
+from loguru import logger
+
 from src.agents import FixMyBugAgent
+from src.models import AgentRequest, AgentResponse
 from src.orchestrator.errors import NoMatchingAgentError
 
 AGENT_REGISTRY = {
@@ -19,10 +21,15 @@ async def dispatch(request: AgentRequest) -> AgentResponse:
     Raises:
         NoMatchingAgentError: If no agent matches the request.
     """
+    logger.info(f"Dispatching request: {request}")
     input_text = request.input.lower()
 
     if "bug" in input_text or "error" in input_text:
+        logger.info("Matched FixMyBugAgent for input.")
         agent = AGENT_REGISTRY["fix_my_bug"]
-        return agent().run(request)
+        response: AgentResponse = agent().run(request)
+        logger.info(f"Agent response: {response}")
+        return response
 
+    logger.error(f"No suitable agent found for request: {request}")
     raise NoMatchingAgentError(f"No suitable agent found for request: {request}")
