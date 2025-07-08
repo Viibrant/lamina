@@ -28,7 +28,7 @@ class LLMClient:
         if system:
             messages.insert(0, {"role": "system", "content": system})
 
-        logger.info(f"Calling LLM with prompt: {prompt!r} | system: {system!r}")
+        logger.debug(f"Calling LLM with prompt: {prompt!r} | system: {system!r}")
         response = litellm.completion(
             model=self.model_name,
             messages=messages,
@@ -38,7 +38,7 @@ class LLMClient:
         content = getattr(response, "content", None)
         if content is None:
             content = str(response)
-        logger.info(f"LLM response: {content!r}")
+        logger.debug(f"LLM response: {content!r}")
         return content
 
     def call_with_schema(
@@ -72,7 +72,7 @@ class LLMClient:
         if system:
             messages.insert(0, {"role": "system", "content": system})
 
-        logger.info(
+        logger.debug(
             f"Calling LLM with schema. Prompt: {prompt!r} | system: {system!r} | schema: {schema.__name__}"
         )
         litellm.enable_json_schema_validation = True
@@ -93,7 +93,5 @@ class LLMClient:
             tools_called=[],
             duration_ms=duration_ms,
         )
-        logger.info(
-            f"LLM response parsed in {duration_ms}ms: {parsed!r} | metadata: {meta!r}"
-        )
+        logger.info(f"LLM response parsed in {duration_ms}ms")
         return LLMResponse(data=parsed, metadata=meta)
