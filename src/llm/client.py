@@ -7,7 +7,6 @@ from pydantic import BaseModel
 
 from src.models import AgentMetadata, LLMResponse
 
-litellm._turn_on_debug()
 
 T = TypeVar("T", bound=BaseModel)
 
