@@ -93,4 +93,7 @@ class LLMClient:
             tools_called=[],
             duration_ms=duration_ms,
         )
+        logger.info(
+            f"LLM response parsed in {duration_ms}ms: {parsed!r} | metadata: {meta!r}"
+        )
         return LLMResponse(data=parsed, metadata=meta)
