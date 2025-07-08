@@ -1,3 +1,5 @@
+from typing import Generic, TypeVar
+
 from pydantic import BaseModel
 
 
@@ -29,3 +31,15 @@ class AgentResponse(BaseModel):
     output: str
     metadata: AgentMetadata
     steps: list[str] | None = None  # Optional trace of steps taken by the agent
+
+
+T = TypeVar("T", bound=BaseModel)
+
+
+class LLMResponse(BaseModel, Generic[T]):
+    """
+    Represents a response from an LLM call, containing the model's output and metadata.
+    """
+
+    data: T
+    metadata: AgentMetadata
