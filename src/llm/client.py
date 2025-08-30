@@ -1,4 +1,6 @@
+import json
 import time
+from pathlib import Path
 from typing import TypeVar
 
 import litellm
@@ -7,8 +9,10 @@ from pydantic import BaseModel
 
 from src.models import AgentMetadata, LLMResponse
 
-
 T = TypeVar("T", bound=BaseModel)
+
+LOG_PATH = Path(__file__).parent / "logs" / "llm_calls.jsonl"
+LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
 
 
 class LLMClient:
@@ -18,6 +22,20 @@ class LLMClient:
 
     def __init__(self, model_name="openai/gpt-4o"):
         self.model_name = model_name
+
+    def chat_completion(self, **kwargs) -> object:
+        """
+        Generate a chat completion using the specified model.
+        """
+        logger.debug(f"Calling LLM with model: {self.model_name} | kwargs: {kwargs}")
+        response = litellm.completion(model=self.model_name, **kwargs)
+
+        # Use .content if available, otherwise fallback to str(response)
+        content = getattr(response, "content", None)
+        if content is None:
+            content = str(response)
+        logger.debug(f"LLM response: {content!r}")
+        return response
 
     def call(self, prompt: str, system: str | None = None) -> str:
         """
@@ -93,5 +111,22 @@ class LLMClient:
             tools_called=[],
             duration_ms=duration_ms,
         )
+
         logger.info(f"LLM response parsed in {duration_ms}ms")
+
+        # Save the raw response to a log file
+        log_entry = {
+            "timestamp": time.time(),
+            "model": self.model_name,
+            "prompt": prompt,
+            "system": system,
+            "response": llm_raw.choices[0].message.content,
+            "parsed": parsed.model_dump(),
+            "schema": schema.__name__,
+            "agent_name": agent_name,
+            "duration_ms": duration_ms,
+        }
+        with LOG_PATH.open("a") as f:
+            f.write(json.dumps(log_entry) + "\n")
+
         return LLMResponse(data=parsed, metadata=meta)

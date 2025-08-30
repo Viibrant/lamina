@@ -25,6 +25,7 @@ class BaseAgent(ABC, metaclass=AgentMeta):
 
     abstract = True
     name: str = "base"
+    description: str
 
     def __init__(self, llm_client: Any = None):
         """

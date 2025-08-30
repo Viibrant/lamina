@@ -12,6 +12,7 @@ class FixMyBugAgent(BaseAgent):
     """
 
     name: str = "fix_my_bug"
+    description: str = "Fixes broken code given an error or bug"
 
     def __init__(self):
         """

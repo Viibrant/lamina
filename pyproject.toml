@@ -16,6 +16,7 @@ dependencies = [
 dev = [
     "pytest>=8.4.1",
     "pytest-recording>=0.13.4",
+    "ruff>=0.12.2",
 ]
 
 [tool.pytest.ini_options]
